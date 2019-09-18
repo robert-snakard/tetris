@@ -6,11 +6,13 @@
     <body>
         <canvas id="tetris"></canvas>
 
-        <script>
-            WebAssembly.instantiateStreaming(fetch('target/wasm32-unknown-unknown/debug/tetris.wasm'))
-                .then(obj => {
-                    obj.instance.exports.start_game();
-                });
+        <script type="module">
+            import { default as init } from "./pkg/tetris.js";
+            async function run() {
+                await init("./pkg/tetris.wasm");
+            }
+
+            run();
         </script>
     </body>
 </html>
