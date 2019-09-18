@@ -7,9 +7,9 @@
         <canvas id="tetris"></canvas>
 
         <script type="module">
-            import { default as init } from "./pkg/tetris.js";
+            import { default as init } from "./tetris.js";
             async function run() {
-                await init("./pkg/tetris.wasm");
+                await init("./tetris.wasm");
             }
 
             run();
