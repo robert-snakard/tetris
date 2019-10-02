@@ -4,12 +4,13 @@
         <meta charset="utf-8">
     </head>
     <body>
+        hi
         <canvas id="tetris"></canvas>
 
         <script type="module">
-            import { default as init } from "./tetris.js";
+            import { default as init } from "./pkg/tetris.js";
             async function run() {
-                await init("./tetris.wasm");
+                await init("./pkg/tetris_bg.wasm");
             }
 
             run();
