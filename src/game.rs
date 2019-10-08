@@ -8,8 +8,10 @@ use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 
 pub struct Game {
-pub    app: WebApp,
+pub app: WebApp,
     board: [[Option<u8>; 10]; 20],
+    cur_piece: usize,
+    total_time: f64,
 }
 
 impl Game {
@@ -17,10 +19,26 @@ impl Game {
         let app = WebApp::new(hook_id);
         let board = [[None; 10]; 20];
 
-        Game { app, board }
+        Game { 
+            app, 
+            board, 
+            cur_piece: 0,
+            total_time: 0.0,
+        }
     }
 
-    pub fn draw_board(&mut self) -> Result<(), JsValue> {
+    pub fn run(&mut self, etime: f64) {
+        self.total_time += etime;
+
+        if self.total_time > 1000.0 {
+            self.draw_board();
+            self.draw_piece(3, 8, self.cur_piece, 0);
+            self.cur_piece = (self.cur_piece + 1) % 7;
+            self.total_time = 0.0;
+        }
+    }
+
+    fn draw_board(&mut self) -> Result<(), JsValue> {
         for y in 0..20 {
             for x in 0..10 {
                 if let Some(_) = self.board[y][x] {
@@ -36,7 +54,7 @@ impl Game {
         Ok(())
     }
 
-    pub fn draw_piece(&mut self, xcoord: u8, ycoord: u8, piece: usize, rotation: usize) -> Result<(), JsValue> {
+    fn draw_piece(&mut self, xcoord: u8, ycoord: u8, piece: usize, rotation: usize) -> Result<(), JsValue> {
         let p = PIECES[piece][rotation];
         self.app.ctx.set_fill_style(&JsValue::from(format!("hsl({}, 100%, 50%", piece*45)));
 
