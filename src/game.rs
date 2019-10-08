@@ -2,10 +2,13 @@ use crate::app::WebApp;
 use crate::events::*;
 use crate::pieces::*;
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use wasm_bindgen::prelude::*;
 
 pub struct Game {
-    app: WebApp,
+pub    app: WebApp,
     board: [[Option<u8>; 10]; 20],
 }
 
@@ -17,21 +20,7 @@ impl Game {
         Game { app, board }
     }
 
-    pub fn run(&mut self) -> Result<(), JsValue> {
-        self.draw_board()?;
-        
-        self.draw_piece(0, 0, 0, 0);
-        self.draw_piece(5, 0, 1, 0);
-        self.draw_piece(0, 4, 2, 0);
-        self.draw_piece(5, 4, 3, 0);
-        self.draw_piece(0, 8, 4, 0);
-        self.draw_piece(5, 8, 5, 0);
-        self.draw_piece(3, 12, 6, 0);
-       
-        Ok(())
-    }
-
-    fn draw_board(&mut self) -> Result<(), JsValue> {
+    pub fn draw_board(&mut self) -> Result<(), JsValue> {
         for y in 0..20 {
             for x in 0..10 {
                 if let Some(_) = self.board[y][x] {
@@ -47,7 +36,7 @@ impl Game {
         Ok(())
     }
 
-    fn draw_piece(&mut self, xcoord: u8, ycoord: u8, piece: usize, rotation: usize) -> Result<(), JsValue> {
+    pub fn draw_piece(&mut self, xcoord: u8, ycoord: u8, piece: usize, rotation: usize) -> Result<(), JsValue> {
         let p = PIECES[piece][rotation];
         self.app.ctx.set_fill_style(&JsValue::from(format!("hsl({}, 100%, 50%", piece*45)));
 

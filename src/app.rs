@@ -23,6 +23,11 @@ impl WebApp {
 
         WebApp { events, ctx }
     }
+   
+    pub fn request_animation_frame(&self, f: &Closure<dyn FnMut(f64)>) -> Result<(), JsValue> {
+        window().unwrap().request_animation_frame(f.as_ref().unchecked_ref())?;
+        Ok(())
+    }
 }
 
 fn get_context(hook_id: &str, eq: &mut Arc<RefCell<EventQueue>>) -> Result<CanvasRenderingContext2d, JsValue> {
