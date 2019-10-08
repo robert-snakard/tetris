@@ -1,6 +1,7 @@
 mod app;
 mod events;
 mod game;
+mod pieces;
 
 use crate::game::Game;
 
