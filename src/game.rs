@@ -19,7 +19,14 @@ impl Game {
 
     pub fn run(&mut self) -> Result<(), JsValue> {
         self.draw_board()?;
-        self.draw_piece(2, 5, 3, 0);
+        
+        self.draw_piece(0, 0, 0, 0);
+        self.draw_piece(5, 0, 1, 0);
+        self.draw_piece(0, 4, 2, 0);
+        self.draw_piece(5, 4, 3, 0);
+        self.draw_piece(0, 8, 4, 0);
+        self.draw_piece(5, 8, 5, 0);
+        self.draw_piece(3, 12, 6, 0);
        
         Ok(())
     }
@@ -42,7 +49,12 @@ impl Game {
 
     fn draw_piece(&mut self, xcoord: u8, ycoord: u8, piece: usize, rotation: usize) -> Result<(), JsValue> {
         let p = PIECES[piece][rotation];
-        self.app.ctx.set_fill_style(&JsValue::from("green"));
+        self.app.ctx.set_fill_style(&JsValue::from(format!("hsl({}, 100%, 50%", piece*45)));
+
+        // Special case yellow b/c people's green cones are too powerful!
+        if piece == 2 {
+            self.app.ctx.set_fill_style(&JsValue::from("hsl(60, 100%, 50%"));
+        }
 
         for y in 0..4 {
             for x in 0..4 {
