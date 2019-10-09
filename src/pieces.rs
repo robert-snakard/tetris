@@ -1,3 +1,6 @@
+use rand::prelude::*;
+use crate::game::Piece;
+
 pub const PIECES: [[[u8; 16]; 4]; 7] = [
 [// Z
     [1, 1, 0, 0,
@@ -119,3 +122,34 @@ pub const PIECES: [[[u8; 16]; 4]; 7] = [
     0, 1, 0, 0,
     0, 0, 0, 0],
 ]];
+
+pub struct NewPieceStructure {
+    grab_bag: Vec<usize>,
+//    rng: ThreadRng,
+}
+
+impl NewPieceStructure {
+    pub fn new() -> NewPieceStructure {
+ //       let mut rng = rand::thread_rng();
+        let mut grab_bag: Vec<usize> = (0..7).collect();
+  //      grab_bag.shuffle(&mut rng);
+
+        NewPieceStructure {
+                grab_bag,
+   //             rng,
+        }
+    }
+
+    pub fn get_next_piece(&mut self) -> usize {
+
+        if self.grab_bag.is_empty() {
+            self.populate_grab_bag();
+        }
+        self.grab_bag.pop().unwrap()
+    }
+
+    fn populate_grab_bag(&mut self) {
+        self.grab_bag = (0..7).collect();
+    //    self.grab_bag.shuffle(&mut self.rng);
+    }
+}
