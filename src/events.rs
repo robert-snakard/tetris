@@ -1,5 +1,6 @@
 pub enum Event {
-    KeyboardEvent(web_sys::KeyboardEvent),
+    KeyDownEvent(web_sys::KeyboardEvent),
+    KeyUpEvent(web_sys::KeyboardEvent),
 }
 
 pub struct EventQueue {
