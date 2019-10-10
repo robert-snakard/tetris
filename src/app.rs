@@ -7,7 +7,7 @@ use wasm_bindgen::JsCast;
 use web_sys::*;
 
 const WIDTH: u32 = 100;
-const HEIGHT: u32 = 100;
+const HEIGHT: u32 = 200;
 
 const HOOK_ID: &str = "tetris";
 
@@ -35,6 +35,8 @@ fn get_context(hook_id: &str, eq: &mut Arc<RefCell<EventQueue>>) -> Result<Canva
         let document = window.document().unwrap();
         let canvas = document.get_element_by_id(hook_id).unwrap()
             .dyn_into::<HtmlCanvasElement>()?;
+        canvas.set_width(100);
+        canvas.set_height(200);
         let ctx = canvas.get_context("2d")?.unwrap()
             .dyn_into::<CanvasRenderingContext2d>()?;
 

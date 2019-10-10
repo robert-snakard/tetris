@@ -1,4 +1,5 @@
 use rand::prelude::*;
+use wasm_bindgen::prelude::*;
 use crate::game::Piece;
 
 pub const PIECES: [[[u8; 16]; 4]; 7] = [
@@ -152,4 +153,13 @@ impl NewPieceStructure {
         self.grab_bag = (0..7).collect();
     //    self.grab_bag.shuffle(&mut self.rng);
     }
+}
+
+pub fn get_piece_color(piece: usize) -> JsValue {
+   if piece == 2 {
+        // Special case yellow b/c people's green cones are too powerful!
+       JsValue::from("hsl(60, 100%, 50%")
+   } else {
+       JsValue::from(format!("hsl({}, 100%, 50%", piece*45))
+   }
 }
