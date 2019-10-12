@@ -95,6 +95,19 @@ impl Game {
                 self.cur_piece.y = self.cur_piece.y - 1;
                 self.lock_piece(self.cur_piece);
                 self.cur_piece = Piece::new(self.new_piece.get_next_piece());
+
+                if !self.piece_valid(self.cur_piece) {
+                    self.app.ctx.set_fill_style(&JsValue::from("black"));
+                    for y in 0..20 {
+                        for x in 4..14 {
+                            self.app.ctx.fill_rect(((x-4) as f64) * 10.0, (y as f64) * 10.0, 10.0, 10.0);
+                        }
+                    }
+                    self.app.ctx.set_fill_style(&JsValue::from("white"));
+                    self.app.ctx.fill_text("Game\nOver", 0.0, 8.0);
+
+                    loop {}
+                }
             }
         }
 
