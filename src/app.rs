@@ -28,6 +28,10 @@ impl WebApp {
         window().unwrap().request_animation_frame(f.as_ref().unchecked_ref())?;
         Ok(())
     }
+
+    pub fn get_next_event(&mut self) -> Option<Event> {
+        self.events.borrow_mut().queue.pop()
+    }
 }
 
 fn get_context(hook_id: &str, eq: &mut Arc<RefCell<EventQueue>>) -> Result<CanvasRenderingContext2d, JsValue> {
@@ -40,21 +44,32 @@ fn get_context(hook_id: &str, eq: &mut Arc<RefCell<EventQueue>>) -> Result<Canva
         let ctx = canvas.get_context("2d")?.unwrap()
             .dyn_into::<CanvasRenderingContext2d>()?;
 
-//        register_handler(&canvas, eq.clone());
+        register_handler(&canvas, eq.clone());
 
         Ok(ctx)
 }
 
 fn register_handler(elem: &HtmlCanvasElement, eq: Arc<RefCell<EventQueue>>) -> Result<(), JsValue> {
-    let handler = move |ev: KeyboardEvent| {
-        eq.borrow_mut().queue.push(Event::KeyboardEvent(ev))
+    let deq = eq.clone();
+    let ueq = eq.clone();
+
+    let downhandler = move |ev: KeyboardEvent| {
+        deq.borrow_mut().queue.push(Event::KeyDownEvent(ev))
+    };
+    let uphandler = move |ev: KeyboardEvent| {
+        ueq.borrow_mut().queue.push(Event::KeyUpEvent(ev))
     };
 
-    let handler = Closure::wrap(Box::new(handler) as Box<dyn FnMut(_)>);
+    let downhandler = Closure::wrap(Box::new(downhandler) as Box<dyn FnMut(_)>);
+    let uphandler = Closure::wrap(Box::new(uphandler) as Box<dyn FnMut(_)>);
+
     // Keyboard has to use win cause elements never get keyboard focus
     if let Some(win) = window() {
-        win.add_event_listener_with_callback("keydown", handler.as_ref().unchecked_ref())?;
-        handler.forget();
+        win.add_event_listener_with_callback("keydown", downhandler.as_ref().unchecked_ref())?;
+        win.add_event_listener_with_callback("keyup", uphandler.as_ref().unchecked_ref())?;
+
+        downhandler.forget();
+        uphandler.forget();
     }
 
     Ok(())
