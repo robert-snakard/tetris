@@ -14,6 +14,7 @@ pub app: WebApp,
     new_piece: NewPieceStructure,
     total_time: f64,
     speed: f64,
+    over: bool,
 }
 
 #[derive(Copy, Clone, Default)]
@@ -50,11 +51,24 @@ impl Game {
             new_piece,
             total_time: 0.0,
             speed: 1000.0,
+            over: false,
         }
     }
 
     pub fn run(&mut self, etime: f64) {
         self.total_time += etime;
+
+        if self.over {
+            self.app.ctx.set_fill_style(&JsValue::from("black"));
+            for y in 0..20 {
+                for x in 4..14 {
+                    self.app.ctx.fill_rect(((x-4) as f64) * 10.0, (y as f64) * 10.0, 10.0, 10.0);
+                }
+            }
+            self.app.ctx.set_fill_style(&JsValue::from("white"));
+            self.app.ctx.fill_text("Game\nOver", 23.0, 80.0);
+            return;
+        }
 
         if let Some(Event::KeyDownEvent(ev)) = self.app.get_next_event() {
             match ev.key().as_ref() {
@@ -97,16 +111,7 @@ impl Game {
                 self.cur_piece = Piece::new(self.new_piece.get_next_piece());
 
                 if !self.piece_valid(self.cur_piece) {
-                    self.app.ctx.set_fill_style(&JsValue::from("black"));
-                    for y in 0..20 {
-                        for x in 4..14 {
-                            self.app.ctx.fill_rect(((x-4) as f64) * 10.0, (y as f64) * 10.0, 10.0, 10.0);
-                        }
-                    }
-                    self.app.ctx.set_fill_style(&JsValue::from("white"));
-                    self.app.ctx.fill_text("Game\nOver", 0.0, 8.0);
-
-                    loop {}
+                    self.over = true;
                 }
             }
         }
