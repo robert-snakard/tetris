@@ -1,4 +1,5 @@
 use crate::app::WebApp;
+use crate::constants::*;
 use crate::pieces::*;
 use crate::events::*;
 
@@ -9,7 +10,7 @@ use wasm_bindgen::prelude::*;
 
 pub struct Game {
 pub app: WebApp,
-    board: [[Option<u8>; 18]; 24], // HACK 0001: height is 20. add hidden board space for the piece array
+    board: [[Option<u8>; ACTUAL_WIDTH]; ACTUAL_HEIGHT],
     cur_piece: Piece,
     new_piece: NewPieceStructure,
     total_time: f64,
@@ -19,8 +20,8 @@ pub app: WebApp,
 
 #[derive(Copy, Clone, Default)]
 pub struct Piece {
-    x: u8,
-    y: u8,
+    x: usize,
+    y: usize,
     piece: usize,
     rotation: usize,
 }
@@ -28,19 +29,14 @@ pub struct Piece {
 impl Game {
     pub fn new(hook_id: &str) -> Game {
         let app = WebApp::new(hook_id);
-        let mut board = [[None; 18]; 24];
+        let mut board = [[Some(7); ACTUAL_WIDTH]; ACTUAL_HEIGHT];
         let mut new_piece = NewPieceStructure::new();
         let cur_piece = Piece::new(new_piece.get_next_piece());
 
         //HACK 0001: set bounds
-        board[20] = [Some(7); 18];
-        board[21] = [Some(7); 18];
-        board[22] = [Some(7); 18];
-        board[23] = [Some(7); 18];
-        for y in 0..20 {
-            for x in 0..4 {
-                board[y][x] = Some(7);
-                board[y][x+14] = Some(7);
+        for y in YLOWER..YUPPER {
+            for x in XLOWER..XUPPER {
+                board[y][x] = None;
             }
         }
 
@@ -60,9 +56,11 @@ impl Game {
 
         if self.over {
             self.app.ctx.set_fill_style(&JsValue::from("black"));
-            for y in 0..20 {
-                for x in 4..14 {
-                    self.app.ctx.fill_rect(((x-4) as f64) * 10.0, (y as f64) * 10.0, 10.0, 10.0);
+            for y in YLOWER..YUPPER {
+                for x in XLOWER..XUPPER {
+                    self.app.ctx.fill_rect(((x-TETRONIMO_DIMENSION) as f64) * SCALING_FACTOR, 
+                                           (y as f64) * SCALING_FACTOR, 
+                                           SCALING_FACTOR, SCALING_FACTOR);
                 }
             }
             self.app.ctx.set_fill_style(&JsValue::from("white"));

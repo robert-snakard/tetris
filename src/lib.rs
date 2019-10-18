@@ -1,4 +1,5 @@
 mod app;
+mod constants;
 mod events;
 mod game;
 mod pieces;
