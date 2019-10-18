@@ -1,5 +1,7 @@
 use crate::app::WebApp;
 use crate::constants::*;
+use crate::constants::TETRONIMO_DIMENSION as TD;
+use crate::constants::SQUARE_LENGTH_IN_PIXELS as SQUARED;
 use crate::pieces::*;
 use crate::events::*;
 
@@ -12,7 +14,7 @@ pub struct Game {
 pub app: WebApp,
     board: [[Option<u8>; ACTUAL_WIDTH]; ACTUAL_HEIGHT],
     cur_piece: Piece,
-    new_piece: NewPieceStructure,
+    npgen: NewPieceGenerator,
     total_time: f64,
     speed: f64,
     over: bool,
@@ -34,8 +36,8 @@ impl Game {
         let cur_piece = Piece::new(new_piece.get_next_piece());
 
         //HACK 0001: set bounds
-        for y in YLOWER..YUPPER {
-            for x in XLOWER..XUPPER {
+        for y in 0..BOARD_HEIGHT {
+            for x in TD..(BOARD_WIDTH+TD) {
                 board[y][x] = None;
             }
         }
@@ -56,11 +58,11 @@ impl Game {
 
         if self.over {
             self.app.ctx.set_fill_style(&JsValue::from("black"));
-            for y in YLOWER..YUPPER {
-                for x in XLOWER..XUPPER {
-                    self.app.ctx.fill_rect(((x-TETRONIMO_DIMENSION) as f64) * SCALING_FACTOR, 
-                                           (y as f64) * SCALING_FACTOR, 
-                                           SCALING_FACTOR, SCALING_FACTOR);
+            for y in 0..BOARD_HEIGHT {
+                for x in 0..BOARD_WIDTH {
+                    self.app.ctx.fill_rect((x as f64) * SQUARED,
+                                           (y as f64) * SQUARED, 
+                                           SQUARED, SQUARED);
                 }
             }
             self.app.ctx.set_fill_style(&JsValue::from("white"));
@@ -108,6 +110,7 @@ impl Game {
                 self.lock_piece(self.cur_piece);
                 self.cur_piece = Piece::new(self.new_piece.get_next_piece());
 
+                // if spawning a piece is invalid set game over
                 if !self.piece_valid(self.cur_piece) {
                     self.over = true;
                 }
@@ -119,15 +122,17 @@ impl Game {
     }
 
     fn draw_board(&mut self) -> Result<(), JsValue> {
-        for y in 0..20 {
-            for x in 4..14 {
-                if let Some(c) = self.board[y][x] {
+        for y in 0..BOARD_HEIGHT {
+            for x in 0..BOARD_WIDTH {
+                if let Some(c) = self.board[y][x+TD] {
                     self.app.ctx.set_fill_style(&get_piece_color(c as usize));
                 } else {
                     self.app.ctx.set_fill_style(&JsValue::from("black"));
                 }
 
-                self.app.ctx.fill_rect(((x-4) as f64) * 10.0, (y as f64) * 10.0, 10.0, 10.0);
+                self.app.ctx.fill_rect((x as f64) * SQUARED, 
+                                       (y as f64) * SQUARED,
+                                       SQUARED, SQUARED);
             }
         }
 
@@ -138,12 +143,12 @@ impl Game {
         let p = PIECES[piece.piece][piece.rotation];
         self.app.ctx.set_fill_style(&get_piece_color(piece.piece));
 
-        for y in 0..4 {
-            for x in 0..4 {
-                if p[(y*4 + x) as usize] == 1 {
-                    self.app.ctx.fill_rect((piece.x+x-4) as f64 * 10.0,
-                                           (piece.y+y) as f64 * 10.0,
-                                           10.0, 10.0);
+        for y in 0..TD {
+            for x in 0..TD {
+                if p[(y*TD + x) as usize] == 1 {
+                    self.app.ctx.fill_rect(((piece.x-TD)+x) as f64 * SQUARED,
+                                           (piece.y+y) as f64 * SQUARED,
+                                           SQUARED, SQUARED);
                 }
             }
         }
@@ -154,9 +159,9 @@ impl Game {
     fn lock_piece(&mut self, piece: Piece) {
        let p = PIECES[piece.piece][piece.rotation]; 
 
-       for y in 0..4 {
-           for x in 0..4 {
-                if p[y*4 + x] == 1 {
+       for y in 0..TETRONIMO_DIMENSION {
+           for x in 0..TETRONIMO_DIMENSION {
+                if p[y*TD + x] == 1 {
                     self.board[piece.y as usize + y][piece.x as usize + x] = Some(piece.piece as u8);
                 }
            }
@@ -166,9 +171,9 @@ impl Game {
     fn piece_valid(&self, piece: Piece) -> bool {
         let p = PIECES[piece.piece][piece.rotation];
 
-        for y in (0..4).rev() {
-            for x in 0..4 {
-                if p[y*4+x] == 1 &&
+        for y in (0..TD).rev() {
+            for x in 0..TETRONIMO_DIMENSION {
+                if p[y*TD+x] == 1 &&
                     self.board[piece.y as usize + y][piece.x as usize + x] != None {
                         return false;
                     }
@@ -182,7 +187,7 @@ impl Game {
 impl Piece {
     fn new(piece: usize) -> Piece {
         Piece {
-            x: 7,
+            x: NUM_PIECES,
             y: 0,
             piece: piece,
             rotation: 0,

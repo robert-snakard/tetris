@@ -124,18 +124,18 @@ pub const PIECES: [[[u8; 16]; 4]; 7] = [
     0, 0, 0, 0],
 ]];
 
-pub struct NewPieceStructure {
+pub struct NewPieceGenerator {
     grab_bag: Vec<usize>,
 //    rng: ThreadRng,
 }
 
-impl NewPieceStructure {
-    pub fn new() -> NewPieceStructure {
+impl NewPieceGenerator {
+    pub fn new() -> NewPieceGenerator {
  //       let mut rng = rand::thread_rng();
         let mut grab_bag: Vec<usize> = (0..7).collect();
   //      grab_bag.shuffle(&mut rng);
 
-        NewPieceStructure {
+        NewPieceGenerator {
                 grab_bag,
    //             rng,
         }
