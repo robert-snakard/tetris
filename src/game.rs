@@ -12,7 +12,6 @@ use wasm_bindgen::prelude::*;
 use web_sys::CanvasRenderingContext2d;
 
 pub struct Game {
-pub app: WebApp,
     board: [[Option<u8>; ACTUAL_WIDTH]; ACTUAL_HEIGHT],
     cur_piece: Piece,
     npgen: NewPieceGenerator,
@@ -30,8 +29,7 @@ pub struct Piece {
 }
 
 impl Game {
-    pub fn new(hook_id: &str) -> Game {
-        let app = WebApp::new(hook_id);
+    pub fn new() -> Game {
         let mut npgen = NewPieceGenerator::new();
         let cur_piece = Piece::new(npgen.get_next_piece());
 
@@ -44,7 +42,6 @@ impl Game {
         }
 
         Game { 
-            app, 
             board, 
             cur_piece,
             npgen,
@@ -54,15 +51,15 @@ impl Game {
         }
     }
 
-    pub fn run(&mut self, etime: f64) {
+    pub fn run(&mut self, etime: f64, app: &mut WebApp) {
         self.total_time += etime;
 
         if self.game_over {
-            Game::print_game_over(&self.app.ctx);
+            Game::print_game_over(app.get_ctx());
             return;
         }
 
-        if let Some(Event::KeyDownEvent(ev)) = self.app.get_next_event() {
+        if let Some(Event::KeyDownEvent(ev)) = app.get_next_event() {
             match ev.key().as_ref() {
                 "ArrowUp" => {
                     self.cur_piece.rotation = (self.cur_piece.rotation + 1) % 4;
@@ -110,20 +107,20 @@ impl Game {
             }
         }
 
-        self.draw_board();
-        self.draw_piece(self.cur_piece);
+        self.draw_board(app.get_ctx());
+        self.draw_piece(self.cur_piece, app.get_ctx());
     }
 
-    fn draw_board(&mut self) -> Result<(), JsValue> {
+    fn draw_board(&mut self, ctx: &CanvasRenderingContext2d) -> Result<(), JsValue> {
         for y in 0..BOARD_HEIGHT {
             for x in 0..BOARD_WIDTH {
                 if let Some(c) = self.board[y][x+TD] {
-                    self.app.ctx.set_fill_style(&get_piece_color(c as usize));
+                    ctx.set_fill_style(&get_piece_color(c as usize));
                 } else {
-                    self.app.ctx.set_fill_style(&JsValue::from("black"));
+                    ctx.set_fill_style(&JsValue::from("black"));
                 }
 
-                self.app.ctx.fill_rect((x as f64) * SQUARED, 
+                ctx.fill_rect((x as f64) * SQUARED, 
                                        (y as f64) * SQUARED,
                                        SQUARED, SQUARED);
             }
@@ -132,14 +129,15 @@ impl Game {
         Ok(())
     }
 
-    fn draw_piece(&mut self, piece: Piece) -> Result<(), JsValue> {
+    fn draw_piece(&mut self, piece: Piece,
+                  ctx: &CanvasRenderingContext2d) -> Result<(), JsValue> {
         let p = PIECES[piece.piece][piece.rotation];
-        self.app.ctx.set_fill_style(&get_piece_color(piece.piece));
+        ctx.set_fill_style(&get_piece_color(piece.piece));
 
         for y in 0..TD {
             for x in 0..TD {
                 if p[(y*TD + x) as usize] == 1 {
-                    self.app.ctx.fill_rect(((piece.x-TD)+x) as f64 * SQUARED,
+                    ctx.fill_rect(((piece.x-TD)+x) as f64 * SQUARED,
                                            (piece.y+y) as f64 * SQUARED,
                                            SQUARED, SQUARED);
                 }
