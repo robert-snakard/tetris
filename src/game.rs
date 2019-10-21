@@ -9,6 +9,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use wasm_bindgen::prelude::*;
+use web_sys::CanvasRenderingContext2d;
 
 pub struct Game {
 pub app: WebApp,
@@ -17,7 +18,7 @@ pub app: WebApp,
     npgen: NewPieceGenerator,
     total_time: f64,
     speed: f64,
-    over: bool,
+    game_over: bool,
 }
 
 #[derive(Copy, Clone, Default)]
@@ -31,11 +32,11 @@ pub struct Piece {
 impl Game {
     pub fn new(hook_id: &str) -> Game {
         let app = WebApp::new(hook_id);
-        let mut board = [[Some(7); ACTUAL_WIDTH]; ACTUAL_HEIGHT];
-        let mut new_piece = NewPieceStructure::new();
-        let cur_piece = Piece::new(new_piece.get_next_piece());
+        let mut npgen = NewPieceGenerator::new();
+        let cur_piece = Piece::new(npgen.get_next_piece());
 
         //HACK 0001: set bounds
+        let mut board = [[Some(NUM_PIECES); ACTUAL_WIDTH]; ACTUAL_HEIGHT];
         for y in 0..BOARD_HEIGHT {
             for x in TD..(BOARD_WIDTH+TD) {
                 board[y][x] = None;
@@ -46,27 +47,18 @@ impl Game {
             app, 
             board, 
             cur_piece,
-            new_piece,
+            npgen,
             total_time: 0.0,
             speed: 1000.0,
-            over: false,
+            game_over: false,
         }
     }
 
     pub fn run(&mut self, etime: f64) {
         self.total_time += etime;
 
-        if self.over {
-            self.app.ctx.set_fill_style(&JsValue::from("black"));
-            for y in 0..BOARD_HEIGHT {
-                for x in 0..BOARD_WIDTH {
-                    self.app.ctx.fill_rect((x as f64) * SQUARED,
-                                           (y as f64) * SQUARED, 
-                                           SQUARED, SQUARED);
-                }
-            }
-            self.app.ctx.set_fill_style(&JsValue::from("white"));
-            self.app.ctx.fill_text("Game\nOver", 23.0, 80.0);
+        if self.game_over {
+            Game::print_game_over(&self.app.ctx);
             return;
         }
 
@@ -107,12 +99,13 @@ impl Game {
             if !self.piece_valid(self.cur_piece) {
                 //HACK 0002: move piece, then move back if invalid
                 self.cur_piece.y = self.cur_piece.y - 1;
+                // If piece can't move down lock it on the board and spawn a new one
                 self.lock_piece(self.cur_piece);
-                self.cur_piece = Piece::new(self.new_piece.get_next_piece());
+                self.cur_piece = Piece::new(self.npgen.get_next_piece());
 
                 // if spawning a piece is invalid set game over
                 if !self.piece_valid(self.cur_piece) {
-                    self.over = true;
+                    self.game_over = true;
                 }
             }
         }
@@ -182,12 +175,25 @@ impl Game {
 
         true
     }
+
+    fn print_game_over(ctx: &CanvasRenderingContext2d) {
+        ctx.set_fill_style(&JsValue::from("black"));
+        for y in 0..BOARD_HEIGHT {
+            for x in 0..BOARD_WIDTH {
+                ctx.fill_rect((x as f64) * SQUARED,
+                (y as f64) * SQUARED,
+                SQUARED, SQUARED);
+            }
+        }
+        ctx.set_fill_style(&JsValue::from("white"));
+        ctx.fill_text("Game\nOver", 23.0, 80.0);
+    }
 }
 
 impl Piece {
     fn new(piece: usize) -> Piece {
         Piece {
-            x: NUM_PIECES,
+            x: 7,
             y: 0,
             piece: piece,
             rotation: 0,

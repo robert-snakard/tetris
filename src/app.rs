@@ -32,6 +32,10 @@ impl WebApp {
     pub fn get_next_event(&mut self) -> Option<Event> {
         self.events.borrow_mut().queue.pop()
     }
+
+    pub fn get_ctx<'a>(&'a self) -> &'a CanvasRenderingContext2d {
+        return &self.ctx;
+    }
 }
 
 fn get_context(hook_id: &str, eq: &mut Arc<RefCell<EventQueue>>) -> Result<CanvasRenderingContext2d, JsValue> {
